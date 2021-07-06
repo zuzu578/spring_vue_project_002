@@ -5,92 +5,106 @@
   <div class="image_items">
   <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Vue.png">
   </div>
-  <a v-for="board in data.boardList" v-bind:key="board.boardSequence" class="list-group-item list-group-item-action active" aria-current="true">
-    <div class="d-flex w-100 justify-content-between">
-      <small>번호 : {{board.bId}}</small>
-      <!--
-      <a :href="'/Board_view?bId=' + board.bId">{{board.bId}}</a>
-      -->
-      <h5 class="mb-1"><a :href="'/Board_view?bId=' + board.bId" >제목 : {{board.bTitle}}</a> </h5>
-      <small>글쓴이 : {{board.bName}}</small>
-      <small>조회수 : {{board.bHit}}</small>
-      <small>날짜 : {{board.bDate}}</small>
-    </div>
-    
-  </a>
+  <div class="datalist" v-for="(user, idx) in boardData" :key="idx">
+    <div class="boardTitle">
+        <h3><a :href="'/Board_view?bId=' + user.bId"  style="black">제목: {{user.bTitle}}</a> </h3>
 
-  <a v-if="data.boardList.length == 0" class="list-group-item list-group-item-action">
+    </div>
+    <div class="board_number">
+        <small>게시물 번호{{user.bId}}</small>
+    </div>
+    <div class="board_date">
+    <small>글쓴이 : {{user.bName}}</small>
+    </div>
+    <div class="board_user_name">
+    <small>조회수  : {{user.bHit}}</small>
+    </div>
+    <div class="board_number">
+    <small >날짜 : {{user.bDate}}</small>
+    </div>
+ 
+ 
+</div>
+  <!-- 데이터가 없는경우 -->
+ <a v-if="boardData.length == 0" class="list-group-item list-group-item-action">
       게시물이 존재하지않습니다.
   </a>
-
-</div>
-<!-- pageNation Area! -->
+  
+ 
+<!-- pageNation Area !-->
 <div class="paging">
-<nav aria-label="...">
+  <nav aria-label="Page navigation example">
   <ul class="pagination">
-    <li class="page-item disabled">
-      <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-    </li>
-    <li class="page-item"><a class="page-link" href="#">1</a></li>
-    <li class="page-item active" aria-current="page">
-      <a class="page-link" href="#">2</a>
-    </li>
-    <li class="page-item"><a class="page-link" href="#">3</a></li>
-    <li class="page-item">
-      <a class="page-link" href="#">Next</a>
-    </li>
+    
+    <li class="page-item"><a class="page-link" :href="'/home?pageNum=' + pageNum" @click="prev()">prev</a></li>
+    <li class="page-item"><a class="page-link" :href="'/home?pageNum=' + pageNum" @click="next()">next</a></li>
+    
   </ul>
 </nav>
+</div>
 </div>
 </div>
 </template>
 
 <script>
-import { reactive } from '@vue/reactivity'
+
 import axios from 'axios'
+
 export default {
+  data(){
+    return{
+      pageNum:this.$route.query.pageNum, //현재 페이지 number를 return 
+      boardData : ''
+    }
+  },
+  methods :{
+    //이전페이지 보여주기 
+    prev(){
+      var pageNum = this.pageNum;
+      var currentPageNum = parseInt(pageNum) -1;
+      //alert(currentPageNum);
+      this.pageNum = currentPageNum;
+      
+    },
+    //다음페이지 보여주기 
+    next(){
+      var pageNum = this.pageNum;
+      var currentPageNum = parseInt(pageNum) +1;
+      //alert(currentPageNum);
+      this.pageNum = currentPageNum;
+       
+    }
+
+  },
   created(){
-    
+     axios.get('http://localhost:8082/mymy/BoardList',{
+        params:{
+          pageNum : this.pageNum
+        }
+      })
+      .then(res =>{
+        console.log(res);
+        this.boardData = res.data;
+      })
   },
   mounted(){
     //alert("mounted!");
   },
 
-  data(){
-    
-  },
   computed: {
 
   },
   name: 'App',
   components: {
   },
-  setup () {
-    const data = reactive({
-      boardList: []
-    })
-    // spring rest api 를 call 하여 data list 를 select
-    const getList = () => {
-      // fetch('데이터를 가져오기 위해 호출할 back-end 쪽의 rest api')
-      axios.get('http://localhost:8082/mymy/BoardList')
-        .then(res => {
-          console.log(res)// data
-          data.boardList = res.data
-        })
-    }
-    console.log(getList())// undefined
-    return {
-      data: data,
-      getList: getList
-    }
-  }
+  
 }
 </script>
 
 <style>
 a{
   text-decoration: none;
-  color:white;
+  color:black;
 }
 .container{
   width:1300px;
@@ -99,7 +113,7 @@ a{
   width:8%;
 }
 .paging{
-  width:300px;
+  width:100px;
   margin:0 auto;
   margin-top:30px;
 
